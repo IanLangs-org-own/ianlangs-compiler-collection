@@ -25,3 +25,12 @@ nim c -d:release --threads:off --hints:off \
   --out:"$OUT/ifc.exe" "$SRC"
 
 echo "EXE listo: $OUT/ifc.exe"
+
+echo
+echo "=== Copiando (PKG) ==="
+
+cp -f no_github/ifc ../../pkg/icc/bin/linux/ifc
+cp -f no_github/ifc.exe ../../pkg/icc/bin/win/ifc.exe
+
+
+echo "Copias listas"
