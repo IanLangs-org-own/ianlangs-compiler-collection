@@ -2,15 +2,32 @@
 #include <string>
 #include <unordered_map>
 #include <cctype>
-
+#include <array>
+#include <iostream>
 namespace flowcpp {
 
 // ---------------------------------
 // Utilidades léxicas
 // ---------------------------------
 
+static std::string trim(const std::string& s) {
+    size_t start = 0;
+    while (start < s.size() && std::isspace(s[start])) start++;
+
+    if (start == s.size()) return ""; // todo era espacio
+
+    size_t end = s.size() - 1;
+    while (end > start && std::isspace(s[end])) end--;
+
+    return s.substr(start, end - start + 1);
+}
+
 static bool isIdentChar(char c) {
     return std::isalnum(static_cast<unsigned char>(c)) || c == '_';
+}
+
+static bool isBoundary(char c) {
+    return !isIdentChar(c);
 }
 
 static bool isBoundary(char prev, char next) {
@@ -102,7 +119,16 @@ static std::string delete_comments(const std::string& code) {
 std::string transpile(const std::string& rawCode) {
 
     std::string code = delete_comments(rawCode);
+    size_t line = 1;
+    // ifn: herramienta para que VSCode marque errores dentro de #if 
+    // y que no compile si se olvida de reemplazarlo correctamente por #if
+
+    // Uso típico:
+    // #ifn defined(IFC)    <-- VSCode resalta, no compila si no se cambia
+    // ... código ...
+    // #endif
 #if defined(IFC)
+    ; //esto para que detecte a cppCode y de error en esta linea y no en la declaraccion de cppCode
     std::string cppCode;
 
     size_t i = 0;
@@ -125,7 +151,7 @@ std::string transpile(const std::string& rawCode) {
     while (i < n) {
 
         char c = code[i];
-
+        if (c == '\n') line++;
         // ---------------- Strings / chars ----------------
 
         if (c == '"' && !inChar && !isEscaped(code, i))
@@ -258,6 +284,105 @@ std::string transpile(const std::string& rawCode) {
                     continue;
                 }
             }
+            
+            // fn / fn<...>
+            if (i+2 <= n && code.substr(i, 2) == "fn") {
+                char prev = (i > 0) ? code[i - 1] : '\0';
+                char nextChar = (i + 2 < n) ? code[i + 2] : '\0';
+
+                if (isBoundary(prev, nextChar)) {
+                    bool closeTemplFound = true;
+                    size_t j = i + 3;
+                    while(isBoundary(code[j])) {
+                        if (code[j] == '<') {
+                            closeTemplFound = false;
+                            break;
+                        }
+                        j++;
+                    }
+                    j = i+3;
+                    int ltGtSymbols = 1;
+                    bool arrowFound = false;
+                    
+                    std::string name;
+                    std::string type;
+                    std::string templateArgs ="<";
+                    char now = '\0';
+
+                    while (j < n && (now = code[j]) != '{') {
+                        char nextLook = ((j + 1) < n) ? code[j+1] : '\0';
+                        
+                        if (!closeTemplFound) {
+                            if (now == '<')  ltGtSymbols++;
+                            else if (now == '>')  ltGtSymbols--;
+
+                            if (ltGtSymbols == 0) closeTemplFound = true;
+                        }
+
+                        if (closeTemplFound && !arrowFound && now == '-' && nextLook == '>') {
+                            arrowFound = true;
+                            j += 2; // saltamos '->'
+                            while (j < n && isspace(code[j])) j++; // salta espacios antes del tipo
+                            continue;
+                        }
+
+                        if (!arrowFound && !closeTemplFound)
+                            templateArgs += now;
+                        else if (!arrowFound)
+                            name += now;
+                        else
+                            type += now;
+
+                        j++;
+                    }
+                    // Limpiar espacios
+                    templateArgs = trim(templateArgs);
+                    name = trim(name);
+                    type = trim(type);
+
+                    if (!closeTemplFound) {
+                        std::cerr << "template function not closed in line " << line;
+                    }
+                    if (((i + 2 < n) ? code[i + 2] : '\0') == '<')
+                        cppCode += type.empty() ? "template " + templateArgs + "void " + name :"template " + templateArgs + type + " " + name;
+                    else
+                        cppCode += type.empty() ? "void " + name : type + " " + name;
+                    i = j;
+                }
+            }
+            // type / type<...>
+
+            if (i+4 <= n && code.substr(i, 4) == "type") {
+                char prev = (i > 0) ? code[i - 1] : '\0';
+                char nextChar = (i + 4 < n) ? code[i + 4] : '\0';
+                if (isBoundary(prev, nextChar)) {
+                    bool isTemplate = true;
+                    size_t j = i + 4;
+                    while(isBoundary(code[j])) {
+                        if (code[j] == '<') {
+                            isTemplate = false;
+                            break;
+                        }
+                        j++;
+                    }
+                    j = i+4;
+                    if (isTemplate) {
+                        char now;
+                        size_t ltGtSymbols = 1;
+                        std::string templateArgs = "<";
+                        while (j<n && ltGtSymbols != 0) {
+                            now = code[j];
+                            if (now == '<') ltGtSymbols++;
+                            else if (now == '>') ltGtSymbols--;
+                            templateArgs += now;
+                            j++;
+                        }
+                        cppCode += "template " + templateArgs + " using";
+                    } else {
+                        cppCode += "using";
+                    }
+                }
+            }
 
             // reemplazos tipo
             const std::pair<std::string, std::string> kws[] = {
@@ -323,8 +448,7 @@ std::string transpile(const std::string& rawCode) {
                     } else {
                         cppCode += "flow::Defer()";
                         i += 5;
-                    }
-
+                    } [[maybe_unused]]  size_t line = 1;
                     continue;
                 }
             }

@@ -12,14 +12,14 @@ if [[ "$1" == "IFC" ]]; then
     SOURCES=$(find "$SRCDIR" -name "*.cpp")
 
     echo "Compilando para Linux..."
-    clang++ -DIFC -DCXX $SOURCES \
+    clang++ -DIFC=3.4 -DFCXX=4.0 -DCXX $SOURCES \
         -std=$CXX_STD -O2 \
         -I"$INCLUDEDIR" \
         -Wall -Wextra -Wpedantic \
         -o "$OUTDIR/ifc"
 
     echo "Compilando para Windows (x86_64)..."
-    clang++ -DIFC -DCXX $SOURCES \
+    clang++ -DIFC=3.4 -DFCXX=4.0 -DCXX $SOURCES \
         --target=x86_64-w64-windows-gnu \
         -std=$CXX_STD -O2 \
         -I"$INCLUDEDIR" \

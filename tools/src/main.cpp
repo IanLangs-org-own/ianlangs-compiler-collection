@@ -23,15 +23,23 @@ static std::string readFile(const std::string& path) {
 }
 
 static void printHelp() {
+#ifdef IFC
     std::cout <<
 R"(Uso: ifc archivo1.fcpp [archivo2.fcpp ...] [flags g++]
 
 Opciones:
-  -o<nombre>
-  -cpp<nombre>
-  -c<nombre>
+  -o<nombre de archivo ejecutable>
+  -cpp<nombre de archivo cpp>
+  -c<nombre de archivo objecto>
+  -cc=<compilador c++ /por defecto clang++>
+  <mas flags del compilador elegido>
 )";
+#endif
 }
+
+#if defined(IFC) && !defined(FCXX)
+#error "need fc++ version if compile for ifc"
+#endif
 
 int main(int argc, char* argv[]) {
 
@@ -50,7 +58,9 @@ int main(int argc, char* argv[]) {
     }
 
     if (args.size() == 1 && args[0] == "-v") {
-        std::cout << "ifc version 3.1\nflow c++ version 3.2\n";
+        #if defined(IFC)
+        std::cout << "ifc version " << IFC << "\nflow c++ version" << FCXX << "\n";
+        #endif
         return 0;
     }
 
