@@ -1,7 +1,0 @@
-#include <iostream>
-int main(int argsCount, char** argsValue) {
-    any obj = "hola any str many string\n"
-              "Flow C++ es este\n";
-    std::cout << [obj]:str: << '\n';
-    return 0;
-}

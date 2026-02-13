@@ -1,36 +1,39 @@
 #!/bin/bash
+
 set -e
 
-SRC="src/main.nim"
-OUT="no_github"
+CXX_STD=gnu++23
+OUTDIR="build"
+SRCDIR="src"
+INCLUDEDIR="include"
 
-mkdir -p "$OUT"
+mkdir -p "$OUTDIR"
 
-echo "=== LINUX (ELF) ==="
-nim c -d:release --threads:off --hints:off --out:"$OUT/ifc" "$SRC"
-echo "ELF listo: $OUT/ifc"
+SOURCES=$(find "$SRCDIR" -name "*.cpp")
 
-echo
-echo "=== WINDOWS (EXE) ==="
-# Usa MinGW 64 bits
-if ! command -v x86_64-w64-mingw32-gcc >/dev/null 2>&1; then
-  echo "Instala mingw-w64 64 bits: sudo apt install mingw-w64"
-  exit 0
-fi
+echo "Compilando para Linux..."
+clang++ $SOURCES \
+    -std=$CXX_STD -O2 \
+    -I"$INCLUDEDIR" \
+    -Wall -Wextra -Wpedantic \
+    -o "$OUTDIR/ifc"
 
-nim c -d:release --threads:off --hints:off \
-  --os:windows --cpu:amd64 \
-  --cc:gcc --gcc.exe:x86_64-w64-mingw32-gcc --gcc.linkerexe:x86_64-w64-mingw32-gcc \
-  --passL:"-static -lwinpthread" \
-  --out:"$OUT/ifc.exe" "$SRC"
+echo "Compilando para Windows (x86_64)..."
+clang++ $SOURCES \
+    --target=x86_64-w64-windows-gnu \
+    -std=$CXX_STD -O2 \
+    -I"$INCLUDEDIR" \
+    -Wall -Wextra -Wpedantic \
+    -o "$OUTDIR/ifc.exe"
 
-echo "EXE listo: $OUT/ifc.exe"
+echo "Listo."
+echo "Binarios generados en $OUTDIR/"
 
-echo
-echo "=== Copiando (PKG) ==="
+echo "Copiando"
 
-cp -f no_github/ifc ../../pkg/icc/bin/linux/ifc
-cp -f no_github/ifc.exe ../../pkg/icc/bin/win/ifc.exe
+cp $OUTDIR/ifc ../../pkg/icc/bin/linux/ifc
 
+cp $OUTDIR/ifc.exe ../../pkg/icc/bin/win/ifc.exe
 
-echo "Copias listas"
+echo "Solo compila los .deb, .rpm y .msi"
+

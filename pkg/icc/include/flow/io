@@ -6,56 +6,18 @@
 #include <tuple>
 #include <typeinfo>
 #include <type_traits>
-
 #include <flow/types>
 #include <flow/errors>
-
+#if __cplusplus >= 202002L
+#include <format>
+#define __FLOW_HAS_FORMAT true
+#else
+#define __FLOW_HAS_FORMAT false
+#endif
 namespace flowBuffer {
 
     // ---------- utilidades internas (NO API) ----------
 
-    inline flow::str type_name(const std::type_info& ti) {
-        return flow::str(ti.name());
-    }
-
-    template<typename T>
-    flow::str to_value(const T& v) {
-        if constexpr (requires { flow::str(v); }) {
-            return flow::str(v);
-        } else if constexpr (requires { std::to_string(v); }) {
-            return flow::str(std::to_string(v));
-        } else {
-            return flow::str("<unprintable>");
-        }
-    }
-
-    template<typename T>
-    flow::str to_ptr(const T& v) {
-        if constexpr (std::is_pointer_v<T>) {
-            if (!v) return flow::str("<null>");
-            return to_value(*v);
-        } else {
-            static_assert(std::is_pointer_v<T>,
-                "flow::printf: ${ptr} requiere un puntero");
-            return {};
-        }
-    }
-
-    template<typename T>
-    flow::str to_type(const T&) {
-        return type_name(typeid(T));
-    }
-
-    template<typename T>
-    flow::str resolve_token(const flow::str& token, const T& arg) {
-        if (token == "value") return to_value(arg);
-        if (token == "ptr")   return to_ptr(arg);
-        if (token == "type")  return to_type(arg);
-
-        throw std::runtime_error(
-            flow::str("flow::printf: placeholder desconocido ${") + token + "}"
-        );
-    }
 
     template <typename T>
     inline void _print_one(const T& v) {
@@ -70,50 +32,22 @@ namespace flowBuffer {
 }
 
 namespace flow {
-
-    // ---------- printf / printfln ----------
-
-    template<typename... Args>
-    void printf(const flow::str& fmt, Args&&... args) {
-        std::tuple<Args...> tup(args...);
-        constexpr std::size_t N = sizeof...(Args);
-
-        std::size_t arg_index = 0;
-
-        for (std::size_t i = 0; i < fmt.size(); ++i) {
-            if (fmt[i] == '$' && i + 1 < fmt.size() && fmt[i + 1] == '{') {
-                auto end = fmt.find('}', i);
-                if (end == flow::str::npos)
-                    throw std::runtime_error("flow::printf: placeholder sin cerrar");
-
-                if (arg_index >= N)
-                    throw std::runtime_error("flow::printf: faltan argumentos");
-
-                flow::str token = fmt.substr(i + 2, end - i - 2);
-                flow::str out;
-
-                std::apply([&](auto&&... elems) {
-                    std::size_t idx = 0;
-                    ((idx++ == arg_index
-                        ? out = flowBuffer::resolve_token(token, elems)
-                        : void()), ...);
-                }, tup);
-
-                std::cout << out.c_str();
-                ++arg_index;
-                i = end;
-            } else {
-                std::cout << fmt[i];
-            }
-        }
+#if __FLOW_HAS_FORMAT
+    template <typename... Ts>
+    inline str format(const flow::str& fmt, Ts&&... args) {
+        return str::fromCppStr(fmt, std::forward<Ts>(args)...);
     }
 
-    template<typename... Args>
-    void printfln(const flow::str& fmt, Args&&... args) {
-        printf(fmt, std::forward<Args>(args)...);
-        std::cout << '\n';
+    template <typename... Ts>
+    inline void printf(const flow::str& fmt, Ts&&... args) {
+        flowBuffer::_print_one(format(fmt, std::forward<Ts>(args)...));
     }
 
+    template <typename... Ts>
+    inline void printlnf(const std::string& fmt, Ts&&... args) {
+        flowBuffer::_print_one(format(fmt, std::forward<Ts>(args)...));
+    }
+#endif
     // ---------- print / println ----------
 
     template <typename... Ts>

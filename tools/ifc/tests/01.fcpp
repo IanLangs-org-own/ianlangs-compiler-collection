@@ -1,7 +1,41 @@
+#include <flow/io> 
+
+using namespace flow;
+
+any make_any(int x) {
+    return x;
+}
+
 int main() {
-    any x = 1;
-    auto y = [x]:long long:;
-    str z = "any many";
-    str many = "";
+    str msg = "start";
+    println(msg);
+
+    auto d1 = defer println("Deferred 1");;
+    auto d2 = defer println("Deferred 2");;
+
+    msg = "middle";
+    println(msg);
+
+    // ------------------------
+    // Any y type check
+    // ------------------------
+    any a = make_any(42);
+    if ([a]:int:?) {
+        println("a is int");
+    }
+
+    any b = str("hello");
+    println([b]:str:);
+
+    // ------------------------
+    // Loop y condicional
+    // ------------------------
+    int total = 0;
+    for (int i = 1; i <= 5; i++) {
+        total = total + i;
+    }
+
+    println(total);
+
     return 0;
 }

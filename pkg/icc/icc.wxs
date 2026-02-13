@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Name="icc" Language="1033" Version="2.4.0" Manufacturer="IanLangs" UpgradeCode="PUT-GUID-HERE">
+  <Product Id="*" Name="icc" Language="1033" Version="2.7.0" Manufacturer="IanLangs" UpgradeCode="PUT-GUID-HERE">
     <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine"/>
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFilesFolder">
