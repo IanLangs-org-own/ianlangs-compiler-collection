@@ -6,12 +6,8 @@ namespace fs = std::filesystem;
 
 namespace flowcpp {
 
-const std::string cacheDir = "dist/cpp";
-const std::string distDir  = "dist";
-const std::string objDir   = "dist/obj";
-
 void initDirs() {
-    for (const auto& path : {cacheDir, objDir, distDir}) {
+    for (const auto& path : {IR, ROOT, OBJ}) {
         if (!fs::exists(path)) {
             fs::create_directories(path);
         }
@@ -20,10 +16,10 @@ void initDirs() {
 
 std::string genCppFile(const std::string& name,
                        const std::string& code,
-                       bool hpp)
+                       bool header)
 {
-    std::string ext = hpp ? ".hpp" : ".cpp";
-    std::string path = cacheDir + "/" + name + ext;
+    std::string ext = header ? ".hpp" : ".cpp";
+    std::string path = IR + "/" + name + ext;
 
     std::ofstream out(path);
     out << code;

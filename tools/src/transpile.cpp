@@ -41,7 +41,7 @@ static bool isSpace(char c) {
 // ---------------------------------
 
 static std::string delete_comments(const std::string& code) {
-
+#if defined(IFC)
     bool inLineComment = false;
     bool inBlockComment = false;
     bool inChar = false;
@@ -89,8 +89,10 @@ static std::string delete_comments(const std::string& code) {
 
         result += c;
     }
-
     return result;
+#else
+    return code;
+#endif
 }
 
 // ---------------------------------
@@ -100,6 +102,7 @@ static std::string delete_comments(const std::string& code) {
 std::string transpile(const std::string& rawCode) {
 
     std::string code = delete_comments(rawCode);
+#if defined(IFC)
     std::string cppCode;
 
     size_t i = 0;
@@ -355,6 +358,9 @@ std::string transpile(const std::string& rawCode) {
     }
 
     return cppCode;
+#else
+    return code;
+#endif
 }
 
 }

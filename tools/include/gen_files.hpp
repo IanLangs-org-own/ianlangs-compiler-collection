@@ -1,11 +1,17 @@
 #pragma once
 #include <string>
 
-namespace flowcpp {
+#define ROOT std::string("dist")
 
-extern const std::string cacheDir;
-extern const std::string distDir;
-extern const std::string objDir;
+#ifdef CXX
+#define IR (ROOT+"/cpp")
+#else
+#define IR (ROOT+"/ir")
+#endif
+
+#define OBJ (ROOT+"/obj")
+
+namespace flowcpp {
 
 void initDirs();
 

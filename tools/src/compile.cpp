@@ -1,11 +1,17 @@
 #include "compile.hpp"
 #include "gen_files.hpp"
-
 #include <filesystem>
 #include <iostream>
 #include <cstdlib>
 
 namespace fs = std::filesystem;
+#if defined(NOHEADER)
+#define HEADER "/"
+#elif defined(CXX)
+#define HEADER ".hpp"
+#else
+#error "need language to define header"
+#endif
 
 namespace flowcpp {
 
@@ -13,21 +19,18 @@ static int execCmd(const std::string& cmd) {
     return std::system(cmd.c_str());
 }
 
-std::vector<std::string> compileObjs(
-    const std::vector<std::string>& flags,
-    const std::vector<std::string>& cppFilesToCompile,
-    const std::string& compiler)
+std::vector<std::string> compileObjs(const std::vector<std::string>& flags, const std::vector<std::string>& cppFilesToCompile, const std::string& compiler)
 {
     std::vector<std::string> objs;
 
     for (const auto& cpp : cppFilesToCompile) {
 
         if (cpp.size() >= 4 &&
-            cpp.substr(cpp.size()-4) == ".hpp")
+            cpp.substr(cpp.size()-std::string(HEADER).size()) == HEADER)
             continue;
 
         std::string name = fs::path(cpp).stem().string();
-        std::string objPath = objDir + "/" + name + ".o";
+        std::string objPath = OBJ + "/" + name + ".o";
 
         std::string cmd = compiler + " -c " + cpp + " -o " + objPath;
         for (const auto& f : flags)
@@ -45,9 +48,7 @@ std::vector<std::string> compileObjs(
     return objs;
 }
 
-void linkObjs(const std::string& outName,
-              const std::vector<std::string>& objs,
-              const std::string& compiler)
+void linkObjs(const std::string& outName, const std::vector<std::string>& objs, const std::string& compiler)
 {
     if (objs.empty()) {
         std::cerr << "No hay objetos para linkear\n";
@@ -58,7 +59,7 @@ void linkObjs(const std::string& outName,
     for (const auto& o : objs)
         cmd += " " + o;
 
-    cmd += " -o " + distDir + "/" + outName;
+    cmd += " -o " + ROOT + "/" + outName;
 
     int res = execCmd(cmd);
     if (res != 0) {
