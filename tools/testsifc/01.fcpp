@@ -1,12 +1,18 @@
 #include <flow/io> 
-
+#include <flow/math>
 using namespace flow;
 
-any make_any(int x) {
+template <typename T>
+type Matrix  = flow::matrix<T>;
+
+type StrVector = flow::vector<str>;
+
+template <typename T>
+fn make_any(T x) -> any {
     return x;
 }
 
-int main() {
+fn main() -> int {
     str msg = "start";
     println(msg);
 

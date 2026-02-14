@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
 
     if (args.size() == 1 && args[0] == "-v") {
         #if defined(IFC)
-        std::cout << "ifc version " << IFC << "\nflow c++ version" << FCXX << "\n";
+        std::cout << "ifc version " << IFC << "\nflow c++ version " << FCXX << "\n";
         #endif
         return 0;
     }

@@ -77,24 +77,6 @@ namespace flow {
 
     using std::any_cast;
 
-    template <typename T>
-    T any_cast(::flow::any* obj) {
-        return std::any_cast<T>(*obj);
-    }
-
-    template <typename T>
-    T any_cast(const ::flow::any* obj) {
-        return std::any_cast<T>(*obj);
-    }
-
-    template <typename T>
-    T any_cast(::flow::any obj, T def) {
-        try {
-            return std::any_cast<T>(obj);
-        } catch(...) {
-            return def;
-        }
-    }
 
     template <typename T>
     T any_cast(const ::flow::any obj, T def) {
@@ -115,25 +97,6 @@ namespace flow {
     }
 
     template <typename T>
-    T any_cast(::flow::any *obj, T def) {
-        try {
-            return std::any_cast<T>(*obj);
-        } catch(...) {
-            return def;
-        }
-    }
-
-    template <typename T>
-    bool any_comprobate(::flow::any obj) {
-        return obj.type() == typeid(T);
-    }
-
-    template <typename T>
-    bool any_comprobate(::flow::any obj, bool f) {
-        return obj.type() == typeid(T) ? f : !f;
-    }
-
-    template <typename T>
     bool any_comprobate(const ::flow::any obj) {
         return obj.type() == typeid(T);
     }
@@ -141,16 +104,6 @@ namespace flow {
     template <typename T>
     bool any_comprobate(const ::flow::any obj, bool f) {
         return obj.type() == typeid(T) ? f : !f;
-    }
-
-    template <typename T>
-    bool any_comprobate(::flow::any* obj) {
-        return obj->type() == typeid(T);
-    }
-
-    template <typename T>
-    bool any_comprobate(::flow::any* obj, bool f) {
-        return obj->type() == typeid(T) ? f : !f;
     }
 
     template <typename T>
