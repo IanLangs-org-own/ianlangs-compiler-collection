@@ -1,0 +1,75 @@
+#pragma once
+#include <memory>
+#include <functional>
+namespace flow {
+#pragma once
+#include <utility>
+#include <cstddef>
+
+namespace flow {
+
+    template<typename T>
+    class UniPtr {
+        T* ptr = nullptr;
+
+    public:
+        explicit UniPtr(T* p = nullptr) noexcept : ptr(p) {}
+
+        UniPtr(const UniPtr&) = delete;
+        UniPtr& operator=(const UniPtr&) = delete;
+
+        UniPtr(UniPtr&& other) noexcept : ptr(other.ptr) {
+            other.ptr = nullptr;
+        }
+
+        UniPtr& operator=(UniPtr&& other) noexcept {
+            if (this != &other) {
+                delete ptr;
+                ptr = other.ptr;
+                other.ptr = nullptr;
+            }
+            return *this;
+        }
+
+        ~UniPtr() { delete ptr; }
+
+        T& operator*() const noexcept { return *ptr; }
+        T* operator->() const noexcept { return ptr; }
+        explicit operator bool() const noexcept { return ptr != nullptr; }
+    };
+
+
+
+    // especialización para arrays
+    template<typename T>
+    class UniPtr<T[]> {
+        T* ptr = nullptr;
+
+    public:
+        explicit UniPtr(T* p = nullptr) noexcept : ptr(p) {}
+
+        UniPtr(const UniPtr&) = delete;
+        UniPtr& operator=(const UniPtr&) = delete;
+
+        UniPtr(UniPtr&& other) noexcept : ptr(other.ptr) {
+            other.ptr = nullptr;
+        }
+
+        UniPtr& operator=(UniPtr&& other) noexcept {
+            if (this != &other) {
+                delete[] ptr;
+                ptr = other.ptr;
+                other.ptr = nullptr;
+            }
+            return *this;
+        }
+
+        ~UniPtr() { delete[] ptr; }
+
+        T& operator[](std::size_t i) const noexcept { return ptr[i]; }
+        explicit operator bool() const noexcept { return ptr != nullptr; }
+    };
+
+    }
+
+}

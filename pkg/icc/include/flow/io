@@ -35,17 +35,17 @@ namespace flow {
 #if __FLOW_HAS_FORMAT
     template <typename... Ts>
     inline str format(const flow::str& fmt, Ts&&... args) {
-        return str::fromCppStr(fmt, std::forward<Ts>(args)...);
+        return str::fromCppStr(std::format(fmt, std::forward<Ts>(args)...));
     }
 
     template <typename... Ts>
     inline void printf(const flow::str& fmt, Ts&&... args) {
-        flowBuffer::_print_one(format(fmt, std::forward<Ts>(args)...));
+        flowBuffer::_print_one(::flow::format(fmt, std::forward<Ts>(args)...));
     }
 
     template <typename... Ts>
     inline void printlnf(const std::string& fmt, Ts&&... args) {
-        flowBuffer::_print_one(format(fmt, std::forward<Ts>(args)...));
+        flowBuffer::_print_one(::flow::format(fmt, std::forward<Ts>(args)...));
     }
 #endif
     // ---------- print / println ----------

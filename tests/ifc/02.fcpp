@@ -1,0 +1,24 @@
+#include <iostream>
+#include <flow/io>
+tagged union[2] result<int, int> {Ok, Err}
+
+using namespace flow;
+
+fn main() -> int {
+
+    result r;
+
+    r = result::Err;
+    r = -1;
+
+    switch (r) {
+        case result::Ok:
+            println("Ok = ", r.value.Ok);
+            break;
+        case result::Err:
+            println("Err = ", r.value.Err);
+            break;
+    }
+
+    return 0;
+}

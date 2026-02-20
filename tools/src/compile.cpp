@@ -35,10 +35,14 @@ std::vector<std::string> compileObjs(const std::vector<std::string>& flags, cons
         std::string cmd = compiler + " -c " + cpp + " -o " + objPath;
         for (const auto& f : flags)
             cmd += " " + f;
+        
+        #ifdef IFC
+        cmd += (std::string)" -D__flow_c_plusplus=" + FCXX ;
+        #endif
 
         int res = execCmd(cmd);
         if (res != 0) {
-            std::cerr << "Error compilando " << cpp << "\n";
+            std::cerr << "Error compilando " << cpp << std::endl;
             std::exit(EXIT_FAILURE);
         }
 
@@ -51,7 +55,7 @@ std::vector<std::string> compileObjs(const std::vector<std::string>& flags, cons
 void linkObjs(const std::string& outName, const std::vector<std::string>& objs, const std::string& compiler)
 {
     if (objs.empty()) {
-        std::cerr << "No hay objetos para linkear\n";
+        std::cerr << "No hay objetos para linkear" << std::endl;
         std::exit(EXIT_FAILURE);
     }
 
@@ -61,14 +65,18 @@ void linkObjs(const std::string& outName, const std::vector<std::string>& objs, 
 
     cmd += " -o " + ROOT + "/" + outName;
 
+    #ifdef IFC
+    cmd += (std::string)" -D__flow_c_plusplus=" + FCXX + " ";
+    #endif
+
     int res = execCmd(cmd);
     if (res != 0) {
-        std::cerr << "Error linkeando\n";
+        std::cerr << "Error linkeando" << std::endl;
         std::exit(EXIT_FAILURE);
     }
 }
 
-void compileAll(const std::vector<std::string>& flags,
+const std::string compileAll(const std::vector<std::string>& flags,
                 const std::vector<std::string>& cppFilesToCompile,
                 const std::string& outName,
                 const std::string& compiler)
@@ -76,6 +84,7 @@ void compileAll(const std::vector<std::string>& flags,
     initDirs();
     auto objs = compileObjs(flags, cppFilesToCompile, compiler);
     linkObjs(outName, objs, compiler);
+    return outName;
 }
 
 }

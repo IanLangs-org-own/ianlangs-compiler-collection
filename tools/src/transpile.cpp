@@ -4,6 +4,9 @@
 #include <cctype>
 #include <array>
 #include <iostream>
+#include <vector>
+#include <sstream>
+#include <string>
 namespace flowcpp {
 
 // ---------------------------------
@@ -256,20 +259,139 @@ std::string transpile(const std::string& rawCode) {
                 }
             }
 
-
-            if (i + 4 <= n && code.substr(i, 4) == "type") {
+            if (i+2 <= n && code.substr(i, 2) == "*{") {
                 char prev = (i > 0) ? code[i - 1] : '\0';
-                char nextChar = (i + 4 < n) ? code[i + 4] : '\0';
+                char nextChar = (i + 2 < n) ? code[i + 2] : '\0';
                 if (isBoundary(prev, nextChar)) {
-                    cppCode += "using";
-                    i += 4;
+                    std::string name;
+                    cppCode += "(*(";
+                    while (code[i] != '{') {
+                        name += code[i];
+                        i++;
+                    }
+                    cppCode += name;
+                    cppCode += "))";
                     continue;
                 }
             }
 
+            // ---------------- tagged union ----------------
+            if (i + 12 <= n && code.substr(i, 12) == "tagged union") {
+                size_t j = i + 12;
+
+                // --- leer [N] opcional ---
+                int expectedCount = -1;
+                while (j < n && isSpace(code[j])) j++;
+
+                if (j < n && code[j] == '[') {
+                    size_t k = j + 1;
+                    std::string num;
+                    while (k < n && std::isdigit(code[k])) {
+                        num += code[k++];
+                    }
+                    if (k < n && code[k] == ']') {
+                        expectedCount = std::stoi(num);
+                        j = k + 1;
+                    }
+                }
+
+                while (j < n && isSpace(code[j])) j++;
+
+                // --- leer nombre ---
+                std::string name;
+                while (j < n && isIdentChar(code[j])) {
+                    name += code[j++];
+                }
+
+                // --- leer <types> ---
+                while (j < n && isSpace(code[j])) j++;
+                if (j >= n || code[j] != '<') {
+                    std::cerr << "error: expected <types>" << std::endl;
+                    std::exit(1);
+                }
+
+                size_t tStart = ++j;
+                while (j < n && code[j] != '>') j++;
+                std::string typesStr = code.substr(tStart, j - tStart);
+                j++; // saltar '>'
+
+                // split tipos
+                std::vector<std::string> types;
+
+                {
+                    std::stringstream ss(typesStr);
+                    std::string item;
+                    while (std::getline(ss, item, ',')) types.push_back(trim(item));
+                }
+
+                // --- leer {variants} ---
+                while (j < n && isSpace(code[j])) j++;
+                if (j >= n || code[j] != '{') {
+                    std::cerr << "error: expected {variants}" << std::endl;
+                    std::exit(1);
+                }
+
+                size_t vStart = ++j;
+                while (j < n && code[j] != '}') j++;
+                std::string varsStr = code.substr(vStart, j - vStart);
+                j++; // saltar '}'
+
+                std::vector<std::string> vars;
+                {
+                    std::stringstream ss(varsStr);
+                    std::string item;
+                    while (std::getline(ss, item, ',')) vars.push_back(trim(item));
+                }
+
+                // --- checks ---
+                if (expectedCount != -1 && expectedCount != (int)vars.size()) {
+                    std::cerr << "variant count mismatch" << std::endl;
+                    std::exit(1);
+                }
+
+                if (types.size() != vars.size()) {
+                    std::cerr << "types/variants count mismatch" << std::endl;
+                    std::exit(1);
+                }
+
+                // --- generar struct ---
+                cppCode += "struct " + name + " {\n";
+                cppCode += "    enum tags { ";
+
+                for (size_t x = 0; x < vars.size(); ++x) {
+                    if (x) cppCode += ", ";
+                    cppCode += vars[x];
+                }
+                cppCode += " };\n";
+
+                cppCode += "    tags tag;\n";
+                cppCode += "    union {\n";
+
+                for (size_t x = 0; x < vars.size(); ++x) {
+                    cppCode += "        " + types[x] + " " + vars[x] + ";\n";
+                }
+
+                cppCode += "    } value;\n";
+                cppCode += "    constexpr operator tags() const noexcept { return tag; }\n";
+                cppCode += "    " + name + "& operator=(tags t) noexcept { tag = t; return *this; }\n";
+                cppCode += "    template <typename T>\n";
+                cppCode += "    " + name + "& operator=(T&& val) noexcept {\n";
+                cppCode += "        using U = std::decay_t<T>;\n";
+                for (size_t x = 0; x < vars.size(); ++x) {
+                    cppCode += "        if constexpr (std::is_same_v<U, " + types[x] + ">) { value." + vars[x] + " = std::forward<T>(val); }\n";
+                }
+                cppCode += "        return *this;\n";
+                cppCode += "    }\n";
+                cppCode += "};\n";
+
+                i = j;
+                continue;
+            }
+
             // ---------------- Reemplazo de tipos simples ----------------
             const std::pair<std::string, std::string> kws[] = {
-                {"any", "flow::any"}, {"anyP", "flow::anyP"}, {"str", "flow::str"}, {"wstr", "flow::wstr"}
+                {"any", "flow::any"}, {"anyP", "flow::anyP"}, {"str", "flow::str"}, {"wstr", "flow::wstr"},
+                {"loop", "while(true)"}, {"type", "using"}, {"pub class", "struct"}
             };
             for (auto& [kw, repl] : kws) {
                 size_t len = kw.size();

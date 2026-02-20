@@ -9,17 +9,17 @@ INCLUDEDIR="include"
 
 mkdir -p "$OUTDIR"
 if [[ "$1" == "IFC" ]]; then
-    SOURCES=$(find "$SRCDIR" -name "*.cpp")
+    SOURCES="src/main.cpp src/transpile.cpp src/gen_files.cpp src/compile.cpp src/ifc.cpp"
 
     echo "Compilando para Linux..."
-    clang++ -DIFC=3.4 -DFCXX=4.0 -DCXX $SOURCES \
+    clang++ -DIFC=\"3.4.2\" -DFCXX=\"4.3.1\" -DCXX $SOURCES \
         -std=$CXX_STD -O2 \
         -I"$INCLUDEDIR" \
         -Wall -Wextra -Wpedantic \
         -o "$OUTDIR/ifc"
 
     echo "Compilando para Windows (x86_64)..."
-    clang++ -DIFC=\"3.4.1\" -DFCXX=\"4.0.1\" -DCXX $SOURCES \
+    clang++ -DIFC=\"3.4.2\" -DFCXX=\"4.3.1\" -DCXX $SOURCES \
         --target=x86_64-w64-windows-gnu \
         -std=$CXX_STD -O2 \
         -I"$INCLUDEDIR" \
