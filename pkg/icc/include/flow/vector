@@ -1,7 +1,0 @@
-#pragma once
-#include <vector>
-namespace flow {
-    using std::vector;
-    template<typename T>
-    using matrix = vector<vector<T>>;
-}

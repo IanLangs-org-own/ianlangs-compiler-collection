@@ -1,13 +1,12 @@
 #pragma once
 #include <cmath>
 #include <limits>
-#include <vector>
 #include <string>
 #include <numeric>
 #include <stdexcept>
 #include <cctype>
 #include <algorithm>
-#include <flow/vector>
+#include <flow/collections>
 namespace flow {
 
     // ==========================================================

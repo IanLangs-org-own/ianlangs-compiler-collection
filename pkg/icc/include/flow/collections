@@ -1,0 +1,24 @@
+#pragma once
+#include <vector>
+#include <array>
+#include <map>
+#include <unordered_map>
+#include <set>
+#include <unordered_set>
+
+namespace flow {
+    using std::vector;
+    
+    template<typename T>
+    using matrix = vector<vector<T>>;
+
+    using std::array;
+    template<typename T, size_t XL, size_t YL>
+    using array2d = array<array<T, XL>, YL>;
+
+    using std::map;
+    using std::unordered_map;
+
+    using std::set;
+    using std::unordered_set;
+}
