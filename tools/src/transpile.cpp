@@ -184,7 +184,34 @@ std::string transpile(const std::string& rawCode) {
                     size_t j = i + 7;
                     std::string name;
                     while (j < n && code[j] != '\n') { name += code[j]; ++j; }
-                    cppCode += name + ".hpp\"\n";
+                    cppCode += trim(name) + ".hpp\"\n";
+                    i = j;
+                    continue;
+                }
+            }
+            if (i + 4 <= n && code.substr(i, 4) == "#std") {
+                char prev = (i > 0) ? code[i - 1] : '\0';
+                char nextc = (i + 4 < n) ? code[i + 4] : '\0';
+                if (isBoundary(prev, nextc)) {
+                    cppCode += "#include <flow/";
+                    size_t j = i + 4;
+                    std::string name;
+                    while (j < n && code[j] != '\n') { name += code[j]; ++j; }
+                    cppCode += trim(name) + ">\n";
+                    i = j;
+                    continue;
+                }
+            }
+
+            if (i + 5 <= n && code.substr(i, 5) == "#cstd") {
+                char prev = (i > 0) ? code[i - 1] : '\0';
+                char nextc = (i + 5 < n) ? code[i + 5] : '\0';
+                if (isBoundary(prev, nextc)) {
+                    cppCode += "#include <";
+                    size_t j = i + 5;
+                    std::string name;
+                    while (j < n && code[j] != '\n') { name += code[j]; ++j; }
+                    cppCode += trim(name) + ">\n";
                     i = j;
                     continue;
                 }
@@ -229,7 +256,7 @@ std::string transpile(const std::string& rawCode) {
                     std::string templateArgs ="<";
                     char now = '\0';
 
-                    while (j < n && (now = code[j]) != '{') {
+                    while (j < n && (now = code[j]) != '{' && code[j] != ';' && code[j] != '\n') {
                         char nextLook = ((j + 1) < n) ? code[j+1] : '\0';
 
                         if (!arrowFound && now == '-' && nextLook == '>') {
@@ -368,18 +395,24 @@ std::string transpile(const std::string& rawCode) {
                 cppCode += "    union {\n";
 
                 for (size_t x = 0; x < vars.size(); ++x) {
-                    cppCode += "        " + types[x] + " " + vars[x] + ";\n";
+                    if (types[x] != "void") cppCode += "        " + types[x] + " " + vars[x] + ";\n";
                 }
 
                 cppCode += "    } value;\n";
                 cppCode += "    constexpr operator tags() const noexcept { return tag; }\n";
                 cppCode += "    " + name + "& operator=(tags t) noexcept { tag = t; return *this; }\n";
-                cppCode += "    template <typename T>\n";
-                cppCode += "    " + name + "& operator=(T&& val) noexcept {\n";
-                cppCode += "        using U = std::decay_t<T>;\n";
-                for (size_t x = 0; x < vars.size(); ++x) {
-                    cppCode += "        if constexpr (std::is_same_v<U, " + types[x] + ">) { value." + vars[x] + " = std::forward<T>(val); }\n";
+                cppCode += "    template <typename ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789>\n";
+                cppCode += "    " + name + "& operator=(ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789&& val) {\n";
+                cppCode += "        using U = std::decay_t<ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789>;\n";
+                if (types[0] != "void")
+                    cppCode += "        if (tag == tags::" + vars[0] + " && std::is_same_v<U, " + types[0] + ">) { value." + vars[0] + " = std::forward<T>(val); }\n";
+
+                for (size_t x = 1; x < vars.size(); ++x) {
+                    if (types[x] != "void")
+                        cppCode += "        else if (tag == tags::" + vars[x] + " && std::is_same_v<U, " + types[x] + ">) { value." + vars[x] + " = std::forward<T>(val); }\n";
                 }
+
+                cppCode += "        else { throw std::runtime_error(\"invalid assignment to tagged union\"); }\n";
                 cppCode += "        return *this;\n";
                 cppCode += "    }\n";
                 cppCode += "};\n";

@@ -29,6 +29,7 @@ namespace flow {
 
         void append(const std::string& data) const {
             std::ofstream f(path, std::ios::app);
+            if (!f) return;
             f << data;
             f.close();
         }

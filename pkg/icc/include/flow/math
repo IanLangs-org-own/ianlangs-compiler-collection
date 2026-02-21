@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <cctype>
 #include <algorithm>
-
+#include <flow/vector>
 namespace flow {
 
     // ==========================================================
@@ -20,8 +20,6 @@ namespace flow {
     inline constexpr long double INF     = std::numeric_limits<long double>::infinity();
     inline constexpr long double NAN_VAL = std::numeric_limits<long double>::quiet_NaN();
     inline constexpr long double EPS     = 1e-12L;
-
-    using std::vector;
 
     // ==========================================================
     // UTILIDADES BÁSICAS
@@ -142,8 +140,6 @@ namespace flow {
     // ==========================================================
     // MATRICES
     // ==========================================================
-    template<typename T>
-    using matrix = vector<vector<T>>;
 
     template<typename T>
     matrix<T> zeros(size_t r, size_t c) {

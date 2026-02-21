@@ -1,19 +1,20 @@
-#include <iostream>
 #include <flow/io>
+
+
+template <typename T = int>
 struct result {
     enum tags { Ok, Err };
     tags tag;
     union {
-        int Ok;
-        int Err;
+        T Ok;
     } value;
     constexpr operator tags() const noexcept { return tag; }
     result& operator=(tags t) noexcept { tag = t; return *this; }
-    template <typename T>
-    result& operator=(T&& val) noexcept {
-        using U = std::decay_t<T>;
-        if constexpr (std::is_same_v<U, int>) { value.Ok = std::forward<T>(val); }
-        if constexpr (std::is_same_v<U, int>) { value.Err = std::forward<T>(val); }
+    template <typename ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789>
+    result& operator=(ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789&& val) {
+        using U = std::decay_t<ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789>;
+        if (tag == tags::Ok && std::is_same_v<U, T>) { value.Ok = std::forward<T>(val); }
+        else { throw std::runtime_error("invalid assignment to tagged union"); }
         return *this;
     }
 };
@@ -22,18 +23,16 @@ struct result {
 using namespace flow;
 
 int main(){
+    result<int> r;
 
-    result r;
-
-    r = result::Err;
-    r = -1;
+    r = result<int>::Err;
 
     switch (r) {
-        case result::Ok:
+        case result<>::Ok:
             println("Ok = ", r.value.Ok);
             break;
-        case result::Err:
-            println("Err = ", r.value.Err);
+        case result<>::Err:
+            println("Err");
             break;
     }
 

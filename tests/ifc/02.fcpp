@@ -1,22 +1,21 @@
-#include <iostream>
-#include <flow/io>
-tagged union[2] result<int, int> {Ok, Err}
+#std io
+
+template <typename T = int>
+tagged union[2] result<T, void> {Ok, Err}
 
 using namespace flow;
 
 fn main() -> int {
+    result<int> r;
 
-    result r;
-
-    r = result::Err;
-    r = -1;
+    r = result<int>::Err;
 
     switch (r) {
-        case result::Ok:
+        case result<>::Ok:
             println("Ok = ", r.value.Ok);
             break;
-        case result::Err:
-            println("Err = ", r.value.Err);
+        case result<>::Err:
+            println("Err");
             break;
     }
 

@@ -6,12 +6,14 @@
 *.bak
 
 # Excepciones: siempre trackear fuentes y scripts
-!**/*.nim
+!**/*.cpp
+!**/*.hpp
 !**/*.fcpp
 !**/*.sh
 !LICENSE.txt
 !**/src/**
 !**/tests/**
 !pkg/
+!pkg/**
 !tools/
-!tools/ifc/
+!tools/**
