@@ -17,9 +17,7 @@ int main(){
     flow::str msg = "start";
     println(msg);
 
-    auto d1 = flow::Defer([&](){println("Deferred 1");});
-    auto d2 = flow::Defer([&](){println("Deferred 2");});
-
+    auto __DEFER_VAR_0 = flow::Defer([&](){println("Deferred 1");});    auto __DEFER_VAR_1 = flow::Defer([&](){println("Deferred 2");});
     msg = "middle";
     println(msg);
 

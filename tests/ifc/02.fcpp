@@ -5,16 +5,18 @@ tagged union[2] result<T, void> {Ok, Err}
 
 using namespace flow;
 
+type int_result = result<int>;
+
 fn main() -> int {
-    result<int> r;
+    int_result r;
 
     r = result<int>::Err;
 
     switch (r) {
-        case result<>::Ok:
+        case int_result::Ok:
             println("Ok = ", r.value.Ok);
             break;
-        case result<>::Err:
+        case int_result::Err:
             println("Err");
             break;
     }

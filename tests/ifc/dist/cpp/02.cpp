@@ -1,3 +1,4 @@
+#include <flow/types>
 #include <flow/io>
 
 
@@ -22,16 +23,18 @@ struct result {
 
 using namespace flow;
 
+using int_result = result<int>;
+
 int main(){
-    result<int> r;
+    int_result r;
 
     r = result<int>::Err;
 
     switch (r) {
-        case result<>::Ok:
+        case int_result::Ok:
             println("Ok = ", r.value.Ok);
             break;
-        case result<>::Err:
+        case int_result::Err:
             println("Err");
             break;
     }

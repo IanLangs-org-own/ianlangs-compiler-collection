@@ -1,6 +1,6 @@
 MIT License / Licencia MIT
 
-Copyright (c) 2026 IanLangs
+Copyright © 2026 IanLangs
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,3 +31,11 @@ PARTICULAR O NO INFRACCIÓN. EN NINGÚN CASO LOS AUTORES O PROPIETARIOS DE LOS D
 AUTOR SERÁN RESPONSABLES POR NINGUNA RECLAMACIÓN, DAÑOS U OTRA RESPONSABILIDAD, YA SEA EN
 UNA ACCIÓN CONTRACTUAL, AGRAVIO O DE OTRO TIPO, DERIVADA DE, FUERA O EN RELACIÓN CON EL SOFTWARE
 O EL USO U OTRO TIPO DE MANEJO DEL SOFTWARE.
+
+Third-party licenses / Licencias de terceros
+
+This project includes Lua (https://www.lua.org/), Lua.org's copyright, PUC-Rio.
+Lua is used under its MIT/BSD-style license.
+
+Este proyecto incluye Lua (https://www.lua.org/), con copyright de Lua.org, PUC-Rio.  
+Lua se utiliza bajo su licencia de estilo MIT/BSD.

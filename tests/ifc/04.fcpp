@@ -1,0 +1,6 @@
+#import 03
+
+fn main() -> int {
+    ejemplo();
+    return 0;
+}

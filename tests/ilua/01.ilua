@@ -1,0 +1,10 @@
+local out, code = shell("cd ..;ls *") -- null
+--[[
+    null
+]]
+local a = "null"
+if code == 0 and out ~= null then
+    io.output():write(out) --out ya tiene el salto de línea al final
+else
+    print("Error ejecutando comando:", code)
+end

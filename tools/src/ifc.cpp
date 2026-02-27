@@ -2,6 +2,8 @@
 #include <fstream>
 #include <filesystem>
 #include <format>
+#include <set>
+
 namespace fs = std::filesystem;
 
 std::string readFile(const std::string& path) {
@@ -16,13 +18,13 @@ std::string readFile(const std::string& path) {
     );
 }
 
-int c_main(std::vector<std::string> args) {
-    if (args.size() == 1 && args[0] == "-h") {
+int ifc_main(std::vector<std::string> args) {
+    if (args.size() == 1 && (args[0] == "-h" || args[0] == "--help")) {
         printHelp();
         return 0;
     }
 
-    if (args.size() == 1 && args[0] == "-v") {
+    if (args.size() == 1 && (args[0] == "-v" || args[0] == "--version")) {
         std::cout << "ifc version " << IFC << std::endl << "flow c++ version " << FCXX << std::endl;
         return 0;
     }
@@ -41,10 +43,11 @@ int c_main(std::vector<std::string> args) {
 
     std::vector<std::string> inputs;
     std::vector<std::string> flags;
+    std::set<std::string> headers;
     bool run = false;
     for (const auto& a : args) {
         if (a.size() >= 5 &&
-            (a.substr(a.size()-5) == ".fcpp" || a.substr(a.size()-5) == ".fhpp"))
+            a.substr(a.size()-5) == ".fcpp")
             inputs.push_back(a);
         else
             if (a != "-r") flags.push_back(a);
@@ -67,18 +70,23 @@ int c_main(std::vector<std::string> args) {
 
     std::vector<std::string> cppToCompile;
 
-    for (const auto& file : inputs) {
-        std::string src = readFile(file);
-        std::string cpp = transpile(src);
+    auto process = [&](const auto& files, bool collectHeaders) {
+        for (const auto& file : files) {
+            std::string src = readFile(file);
+            std::string cpp = transpile(src, collectHeaders ? &headers : nullptr);
 
-        std::string name =
-            fs::path(file).stem().string();
+            std::string name = fs::path(file).stem().string();
+            std::string cppPath = genCppFile(name, cpp, !collectHeaders);
 
-        std::string cppPath =
-            genCppFile(name, cpp, false);
+            cppToCompile.push_back(cppPath);
+        }
+    };
 
-        cppToCompile.push_back(cppPath);
-    }
+    process(inputs, true);
+
+    std::vector<std::string> headersVec(headers.begin(), headers.end());
+    process(headersVec, false);
+
 
     std::string out = compileAll(flags, cppToCompile, outName, compiler);
 

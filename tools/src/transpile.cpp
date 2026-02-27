@@ -7,6 +7,7 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include <set>
 namespace flowcpp {
 
 // ---------------------------------
@@ -115,7 +116,7 @@ static std::string delete_comments(const std::string& code) {
 // Transpiler principal
 // ---------------------------------
 
-std::string transpile(const std::string& rawCode) {
+std::string transpile(const std::string& rawCode, std::set<std::string>* outHeaders) {
     std::string code = delete_comments(rawCode);
 
 #if defined(IFC)
@@ -123,6 +124,7 @@ std::string transpile(const std::string& rawCode) {
     size_t i = 0, n = code.size();
     bool inString = false, inChar = false, inInclude = false, flowUsed = false;
     int pendingUntil = 0, parenDepth = 0;
+    long long defers = 0;
 
     std::unordered_map<std::string, std::string> typeMap = {
         {"str", "flow::str"},
@@ -185,6 +187,7 @@ std::string transpile(const std::string& rawCode) {
                     std::string name;
                     while (j < n && code[j] != '\n') { name += code[j]; ++j; }
                     cppCode += trim(name) + ".hpp\"\n";
+                    if (outHeaders != nullptr) outHeaders->insert(trim(name) + ".fhpp");
                     i = j;
                     continue;
                 }
@@ -456,13 +459,14 @@ std::string transpile(const std::string& rawCode) {
                 char prev = (i > 0) ? code[i - 1] : '\0';
                 char nextc = (i + 5 < n) ? code[i + 5] : '\0';
                 if (isBoundary(prev, nextc)) {
+                    cppCode += "auto __DEFER_VAR_" + std::to_string(defers++) + " = ";
                     size_t exprBegin = i + 5;
                     while (exprBegin < n && isSpace(code[exprBegin])) exprBegin++;
                     size_t exprEnd = exprBegin;
                     while (exprEnd < n && code[exprEnd] != ';') exprEnd++;
                     if (exprBegin < exprEnd) {
-                        cppCode += "flow::Defer([&](){"+code.substr(exprBegin, exprEnd-exprBegin)+";})";
-                        i = exprEnd + 1;
+                        cppCode += "flow::Defer([&](){"+code.substr(exprBegin, exprEnd-exprBegin)+";});";
+                        i = exprEnd + 2;
                     } else {
                         cppCode += "flow::Defer()";
                         i += 5;

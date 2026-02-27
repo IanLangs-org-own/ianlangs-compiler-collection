@@ -1,0 +1,3 @@
+function build(proj)
+    proj:build("ifc", "-v")
+end

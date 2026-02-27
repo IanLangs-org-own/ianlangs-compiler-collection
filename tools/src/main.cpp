@@ -1,8 +1,11 @@
 #include <iostream>
 #include <vector>
-
 #if defined(IFC)
     #include "ifc.hpp"
+#elif defined(ILUA)
+    extern "C" {
+        #include "ilua.h"
+    }
 #endif
 
 #if defined(IFC) && !defined(FCXX)
@@ -12,7 +15,7 @@
 int main(int argc, char* argv[]) {
 
     if (argc == 1) {
-        #if defined(IFC)
+        #if defined(IFC) || defined(ILUA)
             printHelp();
         #endif
         return 1;
@@ -23,7 +26,9 @@ int main(int argc, char* argv[]) {
         args.emplace_back(argv[i]);
     
     #if defined(IFC)
-        return c_main(args);
+        return ifc_main(args);
+    #elif defined(ILUA)
+        return ilua_main(argv);
     #else
         std::cerr << "no have a compiler" << std::endl;
         return 1;

@@ -1,0 +1,5 @@
+#std io
+#import 03
+fn ejemplo() {
+    flow::println("hola mundo");
+}
