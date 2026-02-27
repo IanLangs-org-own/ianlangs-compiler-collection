@@ -16,4 +16,8 @@
 !pkg/**
 !tools/
 !tools/**
+!lua/
+!lua/**
+!tests
+!tests/**/
 ifc.sh
