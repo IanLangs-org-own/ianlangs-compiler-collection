@@ -1,0 +1,125 @@
+#pragma once
+#include <utility>
+#include <new>
+#include <stdexcept>
+
+namespace flow {
+
+enum ResultTag { Ok, Err };
+
+template<typename T, typename E>
+class Result {
+    union {
+        T ok_v;
+        E err_v;
+    };
+    bool is_error;
+
+public:
+
+    /* ===== Constructors ===== */
+
+    Result(const Result& other) : is_error(other.is_error) {
+        if (is_error)
+            new(&err_v) E(other.err_v);
+        else
+            new(&ok_v) T(other.ok_v);
+    }
+
+    Result(Result&& other) noexcept : is_error(other.is_error) {
+        if (is_error)
+            new(&err_v) E(std::move(other.err_v));
+        else
+            new(&ok_v) T(std::move(other.ok_v));
+    }
+
+    ~Result() {
+        if (is_error) err_v.~E();
+        else ok_v.~T();
+    }
+
+    /* ===== Assignment ===== */
+
+    Result& operator=(const Result& other) {
+        if (this == &other) return *this;
+
+        if (is_error) err_v.~E();
+        else ok_v.~T();
+
+        is_error = other.is_error;
+
+        if (is_error)
+            new(&err_v) E(other.err_v);
+        else
+            new(&ok_v) T(other.ok_v);
+
+        return *this;
+    }
+
+    Result& operator=(Result&& other) noexcept {
+        if (this == &other) return *this;
+
+        if (is_error) err_v.~E();
+        else ok_v.~T();
+
+        is_error = other.is_error;
+
+        if (is_error)
+            new(&err_v) E(std::move(other.err_v));
+        else
+            new(&ok_v) T(std::move(other.ok_v));
+
+        return *this;
+    }
+
+    /* ===== Builders ===== */
+
+    static Result Ok(T v) {
+        Result r;
+        r.is_error = false;
+        new(&r.ok_v) T(std::move(v));
+        return r;
+    }
+
+    static Result Err(E e) {
+        Result r;
+        r.is_error = true;
+        new(&r.err_v) E(std::move(e));
+        return r;
+    }
+
+    /* ===== State ===== */
+
+    bool is_ok() const noexcept { return !is_error; }
+    bool is_err() const noexcept { return is_error; }
+
+    explicit operator bool() const noexcept { return !is_error; }
+    operator ResultTag() const noexcept { return is_error ? Err : Ok; }
+
+    /* ===== Access ===== */
+
+    T& unwrap() {
+        if (is_error) throw std::logic_error("unwrap on Err");
+        return ok_v;
+    }
+
+    const T& unwrap() const {
+        if (is_error) throw std::logic_error("unwrap on Err");
+        return ok_v;
+    }
+
+    E& unwrap_err() {
+        if (!is_error) throw std::logic_error("unwrap_err on Ok");
+        return err_v;
+    }
+
+    const E& unwrap_err() const {
+        if (!is_error) throw std::logic_error("unwrap_err on Ok");
+        return err_v;
+    }
+
+private:
+    Result() = default;
+};
+
+} // namespace flow

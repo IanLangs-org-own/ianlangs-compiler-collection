@@ -1,0 +1,32 @@
+#pragma once
+#include <variant>
+#include <stdexcept>
+
+namespace flow {
+
+template<typename... Ts>
+struct variant : std::variant<Ts...> {
+    using std::variant<Ts...>::variant;   // hereda constructores
+    using std::variant<Ts...>::operator=; // hereda asignaciones
+
+    template<typename T>
+    T& get() {
+        if (!std::holds_alternative<T>(*this))
+            throw std::runtime_error("flow::variant bad get<T>()");
+        return std::get<T>(*this);
+    }
+
+    template<typename T>
+    const T& get() const {
+        if (!std::holds_alternative<T>(*this))
+            throw std::runtime_error("flow::variant bad get<T>()");
+        return std::get<T>(*this);
+    }
+
+    template<typename T>
+    bool is() const {
+        return std::holds_alternative<T>(*this);
+    }
+};
+
+}

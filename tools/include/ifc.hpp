@@ -22,4 +22,4 @@ Opciones:
 
 std::string readFile(const std::string& path);
 
-int c_main(std::vector<std::string> args);
+int ifc_main(std::vector<std::string> args);

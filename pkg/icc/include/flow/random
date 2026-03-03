@@ -1,0 +1,64 @@
+#pragma once
+#include <random>
+#include <chrono>
+#include <algorithm>
+
+namespace flow {
+
+class RNG {
+private:
+    std::mt19937_64 gen;
+
+public:
+    RNG() {
+        auto seed = std::chrono::high_resolution_clock::now()
+                        .time_since_epoch().count();
+        gen.seed(seed);
+    }
+
+    explicit RNG(unsigned long long seed) {
+        gen.seed(seed);
+    }
+
+    void seed(unsigned long long s) {
+        gen.seed(s);
+    }
+
+    long long intRange(long long min, long long max) {
+        std::uniform_int_distribution<long long> d(min, max);
+        return d(gen);
+    }
+
+    long double decimalRange(long double min, long double max) {
+        std::uniform_real_distribution<long double> d(min, max);
+        return d(gen);
+    }
+
+    bool chance(long double p) {
+        std::bernoulli_distribution d((double)p);
+        return d(gen);
+    }
+
+    template<class It>
+    void shuffle(It begin, It end) {
+        std::shuffle(begin, end, gen);
+    }
+
+    // long long cualquiera (usa todos los bits del generador)
+    long long nextLong() {
+        return (long long)gen();
+    }
+
+    // unsigned long long cualquiera
+    unsigned long long nextULong() {
+        return gen();
+    }
+
+    // long double en [0,1)
+    long double nextFloat() {
+        std::uniform_real_distribution<long double> d(0.0L, 1.0L);
+        return d(gen);
+    }
+};
+
+}

@@ -11,7 +11,7 @@ mkdir -p "$OUTDIR"
 mkdir -p "$OBJDIR"
 if [[ "$1" == "IFC" ]]; then
     SOURCES="src/main.cpp src/transpile.cpp src/gen_files.cpp src/compile.cpp src/ifc.cpp"
-    VERSION="-DIFC=\"3.4.4\" -DFCXX=\"4.4.2\""
+    VERSION="-DIFC=\"3.4.4\" -DFCXX=\"0.4.5\""
 
     echo "Compilando para Linux..."
     clang++ -DCXX $VERSION $SOURCES \

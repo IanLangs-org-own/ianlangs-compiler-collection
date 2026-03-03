@@ -1,0 +1,21 @@
+function build(P)
+    -- 01
+    P:add("01.fcpp")
+    P:build("ifc", "-o01")
+    P:clear()
+
+    -- 02
+    P:add("02.fcpp")
+    P:build("ifc", "-o02")
+    P:clear()
+
+    -- 03 / 04
+    P:add("03.fcpp")
+    P:add("04.fcpp")
+    P:build("ifc", "-o03-04")
+    P:clear()
+
+    -- 05
+    P:add("05.fcpp")
+    P:build("ifc", "-o05")
+end

@@ -26,12 +26,12 @@ fn main() -> int {
     // Any y type check
     // ------------------------
     any a = make_any(42);
-    if ([a]:int:?) {
+    if ([a can int]) {
         println("a is int");
     }
 
     any b = str("hello");
-    println([b]:str:);
+    println([b as str]);
 
     // ------------------------
     // Loop y condicional

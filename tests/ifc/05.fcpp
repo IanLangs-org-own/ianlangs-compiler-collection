@@ -1,0 +1,26 @@
+#std result
+#std io
+#std random
+using namespace flow;
+fn funcionQuePuedeDarError() -> Result<int, int> {
+    RNG rng;
+    if (rng.decimalRange(0.0, 1.0) < 0.5) return Result<int, int>::Err(1);
+    return Result<int, int>::Ok(0);
+}
+
+fn trymain() -> bool {
+    Result<int, int> res = funcionQuePuedeDarError();
+    [try res except ret true];
+    return false;
+}
+
+fn trymain2() {
+    Result<int, int> res = funcionQuePuedeDarError();
+    [try res];
+}
+
+fn main() -> int {
+    trymain2();
+    println(trymain());
+    return 0;
+}

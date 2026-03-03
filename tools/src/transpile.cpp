@@ -120,6 +120,7 @@ std::string transpile(const std::string& rawCode, std::set<std::string>* outHead
     std::string code = delete_comments(rawCode);
 
 #if defined(IFC)
+    ;
     std::string cppCode;
     size_t i = 0, n = code.size();
     bool inString = false, inChar = false, inInclude = false, flowUsed = false;
@@ -147,33 +148,75 @@ std::string transpile(const std::string& rawCode, std::set<std::string>* outHead
 
         // ---------------- Transformaciones Flow ----------------
         if (!(inString || inChar || inInclude)) {
-            // [expr]:Type: o [expr]:Type:?
+            // [expr as T] / [expr can T] / [try expr] / [try expr except return ret]
             if (c == '[') {
-                size_t j = i + 1, depth = 1;
-                bool localString = false, localChar = false;
+                size_t j = i + 1, depth = 1, l = i+1;
+                bool localString = false, localChar = false, encountered = false;
+
+                // Buscar cierre de corchetes respetando strings y chars
                 while (j < n && depth > 0) {
                     char cj = code[j];
                     if (cj == '"' && !localChar && !isEscaped(code, j)) localString = !localString;
                     else if (cj == '\'' && !localString && !isEscaped(code, j)) localChar = !localChar;
                     else if (!localString && !localChar) {
-                        if (cj == '[') depth++; else if (cj == ']') depth--;
+                        if (cj == '[') depth++;
+                        else if (cj == ']') depth--;
+                        else if (code.substr(j, 4) == " as ") encountered = true;
+                        else if (code.substr(j, 5) == " can ") encountered = true;
                     }
                     j++;
+                    if (!encountered) l++;
                 }
-                if (depth == 0 && j < n && code[j] == ':') {
-                    size_t typeStart = j + 1, k = typeStart;
-                    while (k < n && code[k] != ':') k++;
-                    if (k < n && code[k] == ':') {
-                        bool verify = (k + 1 < n && code[k + 1] == '?');
-                        std::string expr = code.substr(i + 1, j - i - 2);
-                        std::string rawType = code.substr(typeStart, k - typeStart);
-                        std::string typ = typeMap.count(rawType) ? typeMap[rawType] : rawType;
-                        cppCode += verify ? "flow::any_comprobate<" + typ + ">(" + expr + ")"
-                                          : "flow::any_cast<" + typ + ">(" + expr + ")";
-                        i = verify ? k + 2 : k + 1;
-                        flowUsed = true;
-                        continue;
+
+                if (depth != 0) {
+                    // Corchetes no balanceados, error o ignorar
+                    continue;
+                }
+
+                // Extraer contenido interno del corchete
+                std::string expr = code.substr(i + 1, j - i - 2);
+                std::string remaining = code.substr(l); // resto después del cierre
+                std::string var = code.substr(i+1, code.find(remaining));
+                std::cout << expr << std::endl;
+                std::cout << remaining<< std::endl;
+                // Detectar nueva sintaxis: [x as T]
+                if (remaining.starts_with(" as ")) {
+                    size_t typeStart = l + 4; // después de " as "
+                    size_t k = typeStart;
+                    while (k < n && code[k] != ']') k++;
+                    std::string info = code.substr(typeStart, k - typeStart);
+                    cppCode += "flow::any_cast<" + info + ">(" + var + ")";
+                    i = k + 1;
+                    flowUsed = true;
+                    continue;
+                }
+
+                // Detectar nueva sintaxis: [x can T]
+                if (remaining.starts_with(" can ")) {
+                    size_t typeStart = l + 5; // después de " can "
+                    size_t k = typeStart;
+                    while (k < n && code[k] != ']') k++;
+                    std::string info = code.substr(typeStart, k - typeStart);
+                    cppCode += "flow::any_comprobate<" + info + ">(" + var + ")";
+                    i = k + 1;
+                    flowUsed = true;
+                    continue;
+                }
+
+                // Detectar nueva sintaxis: [try x] o [try x except return ret]
+                if (expr.starts_with("try ")) {
+                    size_t exceptPos = expr.find(" except return ");
+                    if (exceptPos != std::string::npos) {
+                        std::string val = expr.substr(exceptPos + 15); // valor a retornar
+                        std::string inner = expr.substr(4, exceptPos - 4); // contenido después de "try "
+                        cppCode += "{auto __flow_tmp = " + inner + "; if(!__flow_tmp) return " + val + ";}";
+                    } else {
+                        std::string inner = expr.substr(4); // contenido después de "try "
+                        cppCode += "{auto __flow_tmp = " + inner + "; if(!__flow_tmp) return;}";
                     }
+                    i = j;
+                    flowUsed = true;
+                    continue;
                 }
             }
 

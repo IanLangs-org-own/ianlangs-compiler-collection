@@ -3,7 +3,7 @@
 #include <typeinfo>
 #include <type_traits>
 #include <stdexcept>
-
+#include <flow/variant>
 namespace flow {
 
     struct None_t{};
@@ -13,7 +13,7 @@ namespace flow {
     template <typename T>
     class optional {
     private:
-        std::variant<T, None_t> value;
+        ::flow::variant<T, None_t> value;
 
     public:
         optional(None_t realvalue = None) : value(realvalue) {}
