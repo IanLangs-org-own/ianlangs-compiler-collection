@@ -22,37 +22,12 @@ int main(){
     println(msg);
 
                 flow::any a = make_any(42);
-    if (flow::any_comprobate<int>(a can int]) {
-        println("a is int");
-    }
-
-    any b = str("hello");
-    println([b as str]);
-
-                int total = 0;
-    for (int i = 1; i <= 5; i++) {
-        total = total + i;
-    }
-
-    println(total);
-
-    return 0;
-})) {
+    if (flow::any_comprobate<int>(a)) {
         println("a is int");
     }
 
     flow::any b = flow::str("hello");
-    println(flow::any_cast<str>(b as str]);
-
-                int total = 0;
-    for (int i = 1; i <= 5; i++) {
-        total = total + i;
-    }
-
-    println(total);
-
-    return 0;
-}));
+    println(flow::any_cast<str>(b));
 
                 int total = 0;
     for (int i = 1; i <= 5; i++) {

@@ -10,7 +10,7 @@ fn funcionQuePuedeDarError() -> Result<int, int> {
 
 fn trymain() -> bool {
     Result<int, int> res = funcionQuePuedeDarError();
-    [try res except ret true];
+    [try res except return true];
     return false;
 }
 

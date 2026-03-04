@@ -1,3 +1,4 @@
+#include <flow/types>
 #include <flow/result>
 
 #include <flow/io>
@@ -13,13 +14,13 @@ Result<int, int> funcionQuePuedeDarError(){
 
 bool trymain(){
     Result<int, int> res = funcionQuePuedeDarError();
-    {auto __flow_tmp = res;if(!__flow_tmp) return true;};
+    {auto __flow_tmp = res; if(!__flow_tmp) return true;};
     return false;
 }
 
 void trymain2(){
     Result<int, int> res = funcionQuePuedeDarError();
-    {auto __flow_tmp = res;if(!__flow_tmp) return;};
+    {auto __flow_tmp = res; if(!__flow_tmp) return;};
 }
 
 int main(){

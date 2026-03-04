@@ -150,75 +150,86 @@ std::string transpile(const std::string& rawCode, std::set<std::string>* outHead
         if (!(inString || inChar || inInclude)) {
             // [expr as T] / [expr can T] / [try expr] / [try expr except return ret]
             if (c == '[') {
-                size_t j = i + 1, depth = 1, l = i+1;
-                bool localString = false, localChar = false, encountered = false;
+                size_t j = i + 1;
+                int depth = 1;
+                bool localString = false;
+                bool localChar = false;
 
-                // Buscar cierre de corchetes respetando strings y chars
                 while (j < n && depth > 0) {
                     char cj = code[j];
-                    if (cj == '"' && !localChar && !isEscaped(code, j)) localString = !localString;
-                    else if (cj == '\'' && !localString && !isEscaped(code, j)) localChar = !localChar;
+
+                    if (cj == '"' && !localChar && !isEscaped(code, j))
+                        localString = !localString;
+                    else if (cj == '\'' && !localString && !isEscaped(code, j))
+                        localChar = !localChar;
                     else if (!localString && !localChar) {
                         if (cj == '[') depth++;
                         else if (cj == ']') depth--;
-                        else if (code.substr(j, 4) == " as ") encountered = true;
-                        else if (code.substr(j, 5) == " can ") encountered = true;
                     }
+
                     j++;
-                    if (!encountered) l++;
                 }
 
                 if (depth != 0) {
-                    // Corchetes no balanceados, error o ignorar
-                    continue;
+                    std::cerr << "Unbalanced brackets\n";
+                    std::exit(1);
                 }
 
-                // Extraer contenido interno del corchete
-                std::string expr = code.substr(i + 1, j - i - 2);
-                std::string remaining = code.substr(l); // resto después del cierre
-                std::string var = code.substr(i+1, code.find(remaining));
-                std::cout << expr << std::endl;
-                std::cout << remaining<< std::endl;
-                // Detectar nueva sintaxis: [x as T]
-                if (remaining.starts_with(" as ")) {
-                    size_t typeStart = l + 4; // después de " as "
-                    size_t k = typeStart;
-                    while (k < n && code[k] != ']') k++;
-                    std::string info = code.substr(typeStart, k - typeStart);
-                    cppCode += "flow::any_cast<" + info + ">(" + var + ")";
-                    i = k + 1;
+                // contenido interno
+                std::string inner = trim(code.substr(i + 1, j - i - 2));
+
+                // ---------- [x as T] ----------
+                size_t asPos = inner.find(" as ");
+                if (asPos != std::string::npos) {
+                    std::string expr = trim(inner.substr(0, asPos));
+                    std::string type = trim(inner.substr(asPos + 4));
+
+                    cppCode += "flow::any_cast<" + type + ">(" + expr + ")";
                     flowUsed = true;
-                    continue;
-                }
-
-                // Detectar nueva sintaxis: [x can T]
-                if (remaining.starts_with(" can ")) {
-                    size_t typeStart = l + 5; // después de " can "
-                    size_t k = typeStart;
-                    while (k < n && code[k] != ']') k++;
-                    std::string info = code.substr(typeStart, k - typeStart);
-                    cppCode += "flow::any_comprobate<" + info + ">(" + var + ")";
-                    i = k + 1;
-                    flowUsed = true;
-                    continue;
-                }
-
-                // Detectar nueva sintaxis: [try x] o [try x except return ret]
-                if (expr.starts_with("try ")) {
-                    size_t exceptPos = expr.find(" except return ");
-                    if (exceptPos != std::string::npos) {
-                        std::string val = expr.substr(exceptPos + 15); // valor a retornar
-                        std::string inner = expr.substr(4, exceptPos - 4); // contenido después de "try "
-                        cppCode += "{auto __flow_tmp = " + inner + "; if(!__flow_tmp) return " + val + ";}";
-                    } else {
-                        std::string inner = expr.substr(4); // contenido después de "try "
-                        cppCode += "{auto __flow_tmp = " + inner + "; if(!__flow_tmp) return;}";
-                    }
                     i = j;
-                    flowUsed = true;
                     continue;
                 }
+
+                // ---------- [x can T] ----------
+                size_t canPos = inner.find(" can ");
+                if (canPos != std::string::npos) {
+                    std::string expr = trim(inner.substr(0, canPos));
+                    std::string type = trim(inner.substr(canPos + 5));
+
+                    cppCode += "flow::any_comprobate<" + type + ">(" + expr + ")";
+                    flowUsed = true;
+                    i = j;
+                    continue;
+                }
+
+                // ---------- [try x] ----------
+                if (inner.rfind("try ", 0) == 0) {
+                    std::string rest = trim(inner.substr(4));
+                    size_t exceptPos = rest.find(" except return ");
+
+                    if (exceptPos != std::string::npos) {
+                        std::string expr = trim(rest.substr(0, exceptPos));
+                        std::string ret  = trim(rest.substr(exceptPos + 15));
+
+                        cppCode += "{auto __flow_tmp = " + expr +
+                                "; if(!__flow_tmp) return " + ret +
+                                ";}";
+                    } else {
+                        cppCode += "{auto __flow_tmp = " + rest +
+                                "; if(!__flow_tmp) return;}";
+                    }
+
+                    flowUsed = true;
+                    i = j;
+                    continue;
+                }
+
+                // si no coincide con nada, deja el corchete intacto
+                cppCode += "[" + inner + "]";
+                i = j;
+                continue;
             }
+
 
             // ---------------- #import ----------------
             if (i + 7 <= n && code.substr(i, 7) == "#import") {
