@@ -1,4 +1,4 @@
-#include "transpiler.hpp"
+#include "ifc.hpp"
 #include <string>
 #include <unordered_map>
 #include <cctype>
@@ -9,7 +9,6 @@
 #include <string>
 #include <set>
 namespace flowcpp {
-
 // ---------------------------------
 // Utilidades léxicas
 // ---------------------------------
@@ -58,7 +57,7 @@ static bool isSpace(char c) {
 // ---------------------------------
 
 static std::string delete_comments(const std::string& code) {
-#if defined(IFC)
+if constexpr (have_fcpp) {
     bool inLineComment = false;
     bool inBlockComment = false;
     bool inChar = false;
@@ -107,9 +106,8 @@ static std::string delete_comments(const std::string& code) {
         result += c;
     }
     return result;
-#else
+} else
     return code;
-#endif
 }
 
 // ---------------------------------
@@ -119,8 +117,7 @@ static std::string delete_comments(const std::string& code) {
 std::string transpile(const std::string& rawCode, std::set<std::string>* outHeaders) {
     std::string code = delete_comments(rawCode);
 
-#if defined(IFC)
-    ;
+if constexpr (have_fcpp) {
     std::string cppCode;
     size_t i = 0, n = code.size();
     bool inString = false, inChar = false, inInclude = false, flowUsed = false;
@@ -148,7 +145,7 @@ std::string transpile(const std::string& rawCode, std::set<std::string>* outHead
 
         // ---------------- Transformaciones Flow ----------------
         if (!(inString || inChar || inInclude)) {
-            // [expr as T] / [expr can T] / [try expr] / [try expr except return ret]
+            // [expr as T] / [expr is T] / [try expr] / [try expr except return ret]
             if (c == '[') {
                 size_t j = i + 1;
                 int depth = 1;
@@ -190,11 +187,11 @@ std::string transpile(const std::string& rawCode, std::set<std::string>* outHead
                     continue;
                 }
 
-                // ---------- [x can T] ----------
-                size_t canPos = inner.find(" can ");
+                // ---------- [x is T] ----------
+                size_t canPos = inner.find(" is ");
                 if (canPos != std::string::npos) {
                     std::string expr = trim(inner.substr(0, canPos));
-                    std::string type = trim(inner.substr(canPos + 5));
+                    std::string type = trim(inner.substr(canPos + 4));
 
                     cppCode += "flow::any_comprobate<" + type + ">(" + expr + ")";
                     flowUsed = true;
@@ -554,9 +551,8 @@ std::string transpile(const std::string& rawCode, std::set<std::string>* outHead
         cppCode = "#include <flow/types>\n" + cppCode;
 
     return cppCode;
-#else
+} else
     return code;
-#endif
 }
 
 

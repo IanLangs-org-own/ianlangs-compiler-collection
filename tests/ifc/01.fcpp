@@ -26,7 +26,7 @@ fn main() -> int {
     // Any y type check
     // ------------------------
     any a = make_any(42);
-    if ([a can int]) {
+    if ([a iss int]) {
         println("a is int");
     }
 

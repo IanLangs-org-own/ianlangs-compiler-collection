@@ -5,11 +5,21 @@
 #include "compile.hpp"
 #include "transpiler.hpp"
 
+namespace flowcpp {
+	constexpr bool have_fcpp = 
+		#ifdef IFC
+			true
+		#else
+			false
+		#endif
+	;
+}
+
 using namespace flowcpp;
 
 inline void printHelp() {
     std::cout <<
-R"(Uso: ifc archivo1.fcpp [archivo2.fcpp ...] [flags clang (o el especificado)]
+R"(Uso: ifc archivo1.fcpp [archivo2.fcpp ...] [flags]
 
 Opciones:
   -o<nombre de archivo ejecutable>
