@@ -1,0 +1,8 @@
+function build(P) do
+    for i = 1, 6 do
+        P:build("ibf 0" .. i .. ".bf")
+    end
+    P:build("ibf 07.ibf --compile-syntax > 07.bf")
+    P:build("ibf 07.bf")
+    shell("rm 07.bf")
+end

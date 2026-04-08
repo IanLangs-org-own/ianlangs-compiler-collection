@@ -2,35 +2,35 @@
 #include <regex>
 #include <string>
 #include <vector>
-
+#include <flow/types>
 namespace flow {
 
     // ---------- match ----------
-    inline bool re_match(const std::string& pat, const std::string& s) {
+    inline bool re_match(const flow::str& pat, const flow::str& s) {
         return std::regex_match(s, std::regex(pat));
     }
 
-    inline bool re_match(const std::string& pat,
-                         const std::string& s,
+    inline bool re_match(const flow::str& pat,
+                         const flow::str& s,
                          std::smatch& m) {
         return std::regex_match(s, m, std::regex(pat));
     }
 
     // ---------- search ----------
-    inline bool re_search(const std::string& pat, const std::string& s) {
+    inline bool re_search(const flow::str& pat, const flow::str& s) {
         return std::regex_search(s, std::regex(pat));
     }
 
-    inline bool re_search(const std::string& pat,
-                          const std::string& s,
+    inline bool re_search(const flow::str& pat,
+                          const flow::str& s,
                           std::smatch& m) {
         return std::regex_search(s, m, std::regex(pat));
     }
 
     // ---------- findall ----------
-    inline std::vector<std::string>
-    re_findall(const std::string& pat, const std::string& s) {
-        std::vector<std::string> out;
+    inline std::vector<flow::str>
+    re_findall(const flow::str& pat, const flow::str& s) {
+        std::vector<flow::str> out;
         std::regex r(pat);
 
         for (std::sregex_iterator it(s.begin(), s.end(), r);
@@ -42,10 +42,10 @@ namespace flow {
     }
 
     // ---------- sub ----------
-    inline std::string
-    re_sub(const std::string& pat,
-           const std::string& repl,
-           const std::string& s) {
+    inline flow::str
+    re_sub(const flow::str& pat,
+           const flow::str& repl,
+           const flow::str& s) {
         return std::regex_replace(s, std::regex(pat), repl);
     }
 

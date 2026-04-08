@@ -6,7 +6,7 @@ using namespace flow;
 template <typename T>
 using Matrix  = flow::matrix<T>;
 
-using StrVector = flow::vector<flow::str>;
+using StrVector = flow::vector<str>;
 
 template <typename T>
 any make_any(T x){
@@ -14,7 +14,7 @@ any make_any(T x){
 }
 
 int main(){
-    flow::str msg = "start";
+    str msg = "start";
     println(msg);
 
     auto __DEFER_VAR_0 = flow::Defer([&](){println("Deferred 1");});    auto __DEFER_VAR_1 = flow::Defer([&](){println("Deferred 2");});
@@ -26,7 +26,7 @@ int main(){
         println("a is int");
     }
 
-    flow::any b = flow::str("hello");
+    flow::any b = str("hello");
     println(flow::any_cast<str>(b));
 
                 int total = 0;

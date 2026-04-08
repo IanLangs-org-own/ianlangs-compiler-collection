@@ -12,7 +12,7 @@ namespace flow {
                 this->conditional = conditional;
             }
 
-            error& append(std::string errormsg) {
+            error& append(flow::str errormsg) {
                 errors.push_back(flow::str::fromCppStr(errormsg));
                 return *this;
             }
@@ -29,7 +29,7 @@ namespace flow {
             }
     };
 
-    void raise(std::string msg = "", int n = 1) {
+    inline void raise(flow::str msg = "", int n = 1) {
         error err(true);
         err.append(msg).raise(n);
     }

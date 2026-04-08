@@ -1,12 +1,12 @@
 #pragma once
 #include <cmath>
 #include <limits>
-#include <string>
 #include <numeric>
 #include <stdexcept>
 #include <cctype>
 #include <algorithm>
 #include <flow/collections>
+#include <flow/types>
 namespace flow {
 
     // ==========================================================
@@ -25,14 +25,14 @@ namespace flow {
     // ==========================================================
     inline long double abs(long double x) { return std::fabs(x); }
 
-    template<typename T>
-    inline T min(const T& a, const T& b) { return (a < b) ? a : b; }
+    template<typename T, typename U>
+    inline auto min(const T& a, const U& b) { return (a < b) ? a : b; }
 
-    template<typename T>
-    inline T max(const T& a, const T& b) { return (a > b) ? a : b; }
+    template<typename T, typename U>
+    inline auto max(const T& a, const U& b) { return (a > b) ? a : b; }
 
-    template<typename T>
-    inline T clamp(T x, T lo, T hi) {
+    template<typename T, typename U, typename V>
+    inline auto clamp(T x, U lo, V hi) {
         return (x < lo) ? lo : (x > hi ? hi : x);
     }
 
@@ -68,12 +68,11 @@ namespace flow {
     using std::atan2;
 
     using std::exp;
-    using std::log;
     using std::log10;
 
     inline long double ln(long double x) { return log(x); }
     inline long double log_base(long double x, long double base) {
-        return log(x) / log(base);
+        return ln(x) / ln(base);
     }
 
     using std::sqrt;
@@ -179,9 +178,9 @@ namespace flow {
         return C;
     }
 
-    // ==========================================================
-    // COMBINATORIA
-    // ==========================================================
+    /* ==========================================================
+     COMBINATORIA
+     ========================================================== */
     inline long double factorial(int n) {
         if (n < 0) throw std::domain_error("factorial: n negativo");
         long double r = 1;
@@ -202,24 +201,24 @@ namespace flow {
     // ==========================================================
     // CONVERSIÓN DE BASES
     // ==========================================================
-    inline std::string to_base(long double n, int base, int precision = 12) {
+    inline flow::str to_base(long double n, int base, int precision = 12) {
         if (base < 2 || base > 36)
             throw std::domain_error("to_base: base inválida");
 
-        const std::string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const flow::str chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         bool neg = n < 0;
         if (neg) n = -n;
 
         long long ip = static_cast<long long>(n);
         long double fp = n - ip;
 
-        std::string i;
+        flow::str i;
         do {
             i = chars[ip % base] + i;
             ip /= base;
         } while (ip > 0);
 
-        std::string f;
+        flow::str f;
         while (fp > 0 && precision--) {
             fp *= base;
             int d = static_cast<int>(fp);
@@ -227,20 +226,20 @@ namespace flow {
             fp -= d;
         }
 
-        std::string r = i;
+        flow::str r = i;
         if (!f.empty()) r += "." + f;
         if (neg) r = "-" + r;
         return r;
     }
 
-    inline long double from_base(const std::string& s, int base) {
+    inline long double from_base(const flow::str& s, int base) {
         if (base < 2 || base > 36)
             throw std::domain_error("from_base: base inválida");
 
-        const std::string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const flow::str chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         size_t dot = s.find('.');
-        std::string i = (dot == std::string::npos) ? s : s.substr(0, dot);
-        std::string f = (dot == std::string::npos) ? "" : s.substr(dot + 1);
+        flow::str i = (dot == flow::str::npos) ? s : (flow::str)s.substr(0, dot);
+        flow::str f = (dot == flow::str::npos) ? "" : s.substr(dot + 1);
 
         bool neg = false;
         size_t start = 0;
@@ -250,7 +249,7 @@ namespace flow {
         for (size_t k = start; k < i.size(); ++k) {
             char c = std::toupper(i[k]);
             size_t v = chars.find(c);
-            if (v == std::string::npos || v >= (size_t)base)
+            if (v == flow::str::npos || v >= (size_t)base)
                 throw std::domain_error("from_base: caracter inválido");
             r = r * base + v;
         }
@@ -259,7 +258,7 @@ namespace flow {
         for (char c : f) {
             char u = std::toupper(c);
             size_t v = chars.find(u);
-            if (v == std::string::npos || v >= (size_t)base)
+            if (v == flow::str::npos || v >= (size_t)base)
                 throw std::domain_error("from_base: caracter inválido");
             r += v * mul;
             mul /= base;
@@ -279,11 +278,11 @@ namespace flow {
         return r;
     }
 
-    long double H(long double a, long double b, int n) {
-        if (n == 0) return b + 1;
-        if (n == 1) return a + b;
-        if (n == 2) return a * b;
-        if (b == 0) return 1; // depende del nivel
+    long double H(long double a, long double b = 0, int n) {
+        if (b == 0) return 1;
+        else if (n == 0) return a + 1;
+        else if (n == 1) return a + b;
+        else if (n == 2) return a * b;
         return H(a, H(a, b - 1, n), n - 1);
     }
 

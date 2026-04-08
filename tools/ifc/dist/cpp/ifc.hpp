@@ -1,0 +1,60 @@
+#include <flow/types>
+#pragma once
+#include <flow/collections>
+
+#include <flow/io>
+
+
+using namespace flow;
+
+#define ROOT str("dist")
+
+#define IR (ROOT+"/cpp")
+
+#define OBJ (ROOT+"/obj")
+
+namespace flowcpp {
+
+str transpile(const str rawCode, flow::set<str>* outHeaders);
+
+void initDirs();
+
+str genCppFile(const str name,
+                       const str code,
+                       bool hpp = false);
+
+constexpr bool have_fcpp = true;
+
+flow::vector<str> compileObjs(
+    const flow::vector<str>& flags,
+    const flow::vector<str>& cppFilesToCompile,
+    const str& compiler
+);
+
+void linkObjs(const str& outName,
+              const std::vector<str>& objs,
+              const str& compiler);
+
+const str compileAll(const std::vector<str>& flags,
+                const std::vector<str>& cppFilesToCompile,
+                flow::vector<str> ext_objs,
+                const str& outName = "app",
+                const str& compiler = "clang++");
+
+}
+
+using namespace flowcpp;
+
+inline void printHelp() {
+   flow::print(
+R"(Uso: ifc archivo1.fcpp [archivo2.fcpp ...] [flags]
+
+Opciones:
+  -o<nombre de archivo ejecutable>
+  -cpp<nombre de archivo cpp>
+  -c<nombre de archivo objecto>
+  -cc=<compilador c++ /por defecto clang++>
+  <mas flags del compilador elegido>
+)");
+}
+

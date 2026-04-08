@@ -1,0 +1,86 @@
+#std collections
+#std io
+#cstd filesystem
+#cstd cstdlib
+
+using namespace flow;
+
+#define ROOT str("dist")
+
+#define IR (ROOT+"/cpp")
+
+#define OBJ (ROOT+"/obj")
+
+namespace fs = std::filesystem;
+#define HEADER ".hpp"
+
+namespace flowcpp {
+
+    extern fn initDirs();
+
+static fn execCmd(const str cmd) -> int {
+    return std::system(cmd.c_str());
+}
+
+fn compileObjs(const flow::vector<str> flags, const flow::vector<str> cppFilesToCompile, const str compiler) -> std::vector<str> {
+    std::vector<str> objs;
+
+    for (const auto& cpp : cppFilesToCompile) {
+
+        if (cpp.size() >= 4 &&
+            cpp.substr(cpp.size()-str(HEADER).size()) == HEADER)
+            continue;
+
+        str name = fs::path((std::string)cpp).stem().string();
+        str objPath = OBJ + "/" + name + ".o";
+
+        str cmd = compiler + " -c " + cpp + " -o " + objPath;
+        for (const auto& f : flags)
+            cmd += " " + f;
+        
+        cmd += (str)" -D__flow_c_plusplus=" + FCXX ;
+
+        int res = execCmd(cmd);
+        if (res != 0) {
+            flow::println("Error compilando ", cpp);
+            std::exit(EXIT_FAILURE);
+        }
+
+        objs.push_back(objPath);
+    }
+
+    return objs;
+}
+
+fn linkObjs(const str& outName, const std::vector<str>& objs, const str& compiler) {
+    if (objs.empty()) {
+        flow::raise("No hay objetos para linkear");
+        std::exit(EXIT_FAILURE);
+    }
+
+    str cmd = compiler;
+    for (const auto& o : objs)
+        cmd += " " + o;
+
+    cmd += " -o " + ROOT + "/" + outName;
+    
+    cmd += (str)" -D__flow_c_plusplus=" + FCXX + " ";
+
+    int res = execCmd(cmd);
+    if (res != 0) {
+        flow::raise("Error linkeando");
+        std::exit(EXIT_FAILURE);
+    }
+}
+
+fn compileAll(const std::vector<str>& flags,const std::vector<str>& cppFilesToCompile,flow::vector<str> ext_objs,const str& outName,const str& compiler) -> auto {
+    initDirs();
+    auto objs_1 = compileObjs(flags, cppFilesToCompile, compiler);
+    std::vector<str> objs_2;
+    objs_2.insert(objs_2.end(), objs_1.begin(), objs_1.end());
+    objs_2.insert(objs_2.end(), ext_objs.begin(), ext_objs.end());
+    linkObjs(outName, objs_2, compiler);
+    return outName;
+}
+
+}

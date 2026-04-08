@@ -1,0 +1,9 @@
+cimport stdio
+square(x) = x*x
+main do
+    var float input = 0
+    scanf("%ld", &input)
+    input = square(input)
+    printf("%ld", input)
+    return 0
+done

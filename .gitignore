@@ -20,4 +20,4 @@
 !lua/**
 !tests
 !tests/**/
-ifc.sh
+tools/zig-pkg/

@@ -44,7 +44,7 @@ namespace flow {
     }
 
     template <typename... Ts>
-    inline void printlnf(const std::string& fmt, Ts&&... args) {
+    inline void printlnf(const flow::str& fmt, Ts&&... args) {
         flowBuffer::_print_one(::flow::format(fmt, std::forward<Ts>(args)...));
     }
 #endif
@@ -63,29 +63,29 @@ namespace flow {
 
     // ---------- input ----------
 
-    inline void input(const std::string& ask, std::string& var) {
+    inline void input(const flow::str& ask, flow::str& var) {
         print(ask);
         std::getline(std::cin, var);
     }
 
-    inline void input(const std::string& ask, flow::str& var) {
-        std::string buffer;
+    inline void input(const flow::str& ask, flow::str& var) {
+        flow::str buffer;
         print(ask);
         std::getline(std::cin, buffer);
-        var = flow::str::fromCppStr(buffer);
+        var = buffer;
     }
 
     template <typename T>
-    inline void input(const std::string& ask, T& var) {
+    inline void input(const flow::str& ask, T& var) {
         print(ask);
         std::cin >> var;
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
 
-    inline flow::str input(const std::string& ask) {
+    inline flow::str input(const flow::str& ask) {
         print(ask);
-        std::string buffer;
+        flow::str buffer;
         std::getline(std::cin, buffer);
-        return flow::str::fromCppStr(buffer);
+        return buffer;
     }
 }

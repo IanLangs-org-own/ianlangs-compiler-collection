@@ -1,0 +1,10 @@
+cimport stdio
+multiline fn println({const char*} s) -> {void} do
+    printf(s);
+    printf("\n");
+done
+
+main do 
+    println("hola mundo")
+    return 0
+done

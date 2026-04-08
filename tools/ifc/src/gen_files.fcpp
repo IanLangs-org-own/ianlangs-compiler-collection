@@ -1,0 +1,36 @@
+#std collections
+#cstd filesystem
+#cstd fstream
+
+using namespace flow;
+
+#define ROOT str("dist")
+
+#define IR (ROOT+"/cpp")
+
+#define OBJ (ROOT+"/obj")
+
+namespace fs = std::filesystem;
+
+namespace flowcpp {
+
+fn initDirs() {
+    for (const auto& path : (str[]){IR, ROOT, OBJ}) {
+        if (!fs::exists((std::string)path)) {
+            fs::create_directories((std::string)path);
+        }
+    }
+}
+
+fn genCppFile(const str name, const str code, bool header) -> str {
+    str ext = header ? ".hpp" : ".cpp";
+    str path = IR + "/" + name + ext;
+
+    std::ofstream out(path);
+    out << code;
+    out.close();
+
+    return path;
+}
+
+}

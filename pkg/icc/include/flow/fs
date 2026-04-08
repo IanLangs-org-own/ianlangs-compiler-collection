@@ -2,16 +2,16 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-
+#include <flow/types>
 namespace flow {
 
     class File {
-        std::string path;
+        flow::str path;
 
     public:
-        explicit File(const std::string& p) : path(p) {}
+        explicit File(const flow::str& p) : path(p) {}
 
-        std::string read() const {
+        flow::str read() const {
             std::ifstream f(path);
             if (!f) return "";
             std::ostringstream ss;
@@ -20,14 +20,14 @@ namespace flow {
             return ss.str();
         }
 
-        void write(const std::string& data) const {
+        void write(const flow::str& data) const {
             std::ofstream f(path, std::ios::trunc);
             if (!f) return;
             f << data;
             f.close();
         }
 
-        void append(const std::string& data) const {
+        void append(const flow::str& data) const {
             std::ofstream f(path, std::ios::app);
             if (!f) return;
             f << data;
@@ -35,7 +35,7 @@ namespace flow {
         }
     };
 
-    inline File openFile(const std::string& path) {
+    inline File openFile(const flow::str& path) {
         return File(path);
     }
 
